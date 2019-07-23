@@ -8,8 +8,9 @@ const express = require("express"),
   FileStore = require("session-file-store")(session),
   logger = require("morgan");
 
+require("dotenv").config();
+
 const indexRouter = require("./routes/index"),
-  loginRouter = require("./routes/login"),
   usersRouter = require("./routes/users");
 
 const app = express();
@@ -38,10 +39,10 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
+app.use(cors(corsOptions));
+
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
-app.use("/login", loginRouter);
-app.use(cors(corsOptions));
 
 app.use(
   session({
