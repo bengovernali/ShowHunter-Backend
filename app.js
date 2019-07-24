@@ -1,7 +1,6 @@
 const express = require("express"),
   path = require("path"),
   cookieParser = require("cookie-parser"),
-  passport = require("passport"),
   session = require("express-session"),
   FileStore = require("session-file-store")(session),
   logger = require("morgan");
@@ -13,7 +12,7 @@ const app = express();
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieParser(process.env["SESSION_SECRET"]));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(
   session({
@@ -21,20 +20,12 @@ app.use(
     secret: process.env["SESSION_SECRET"],
     resave: true,
     saveUninitialized: true,
-    is_logged_in: false
+    is_logged_in: false,
+    cookie: {
+      secure: false
+    }
   })
 );
-
-app.use(passport.initialize());
-app.use(passport.session());
-
-passport.serializeUser(function(user, done) {
-  done(null, user);
-});
-
-passport.deserializeUser(function(obj, done) {
-  done(null, obj);
-});
 
 const indexRouter = require("./routes/index"),
   homeRouter = require("./routes/home"),
