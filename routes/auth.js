@@ -1,6 +1,7 @@
 const express = require("express"),
   querystring = require("querystring"),
   request = require("request"),
+  session = require("express-session"),
   passport = require("passport"),
   SpotifyStrategy = require("passport-spotify").Strategy,
   router = express.Router();
@@ -30,7 +31,6 @@ passport.use(
         //req.session.isLoggedIn = true;
         bearer = accessToken;
         user = profile.id;
-        console.log(bearer, user);
         return done(null, bearer, user);
       });
     }
@@ -50,15 +50,26 @@ router.get(
   }
 );
 
-//Handle redirect back to front end
+//Handle redirect back to front end and set session variables
 router.get(
   "/spotify/callback/",
   passport.authenticate("spotify", { failureRedirect: "/" }),
   function(req, res) {
     // Successful authentication, redirect home.
-    console.log("THIS IS THE RES: ", res);
+    req.session.bearer = req.user;
+    req.session.user = req.authInfo;
+
+    console.log("req user", req.user);
+    console.log("req auth info", req.authInfo);
+
     res.redirect("http://localhost:3001/home");
   }
 );
+
+router.get("/scan", async function(req, res, next) {
+  console.log("req user", req.user);
+  console.log("req session", req.session);
+  console.log("passport session", passport.session);
+});
 
 module.exports = router;

@@ -19,7 +19,7 @@ app.use(
   session({
     store: new FileStore(),
     secret: process.env["SESSION_SECRET"],
-    resave: false,
+    resave: true,
     saveUninitialized: true,
     is_logged_in: false
   })
@@ -37,10 +37,12 @@ passport.deserializeUser(function(obj, done) {
 });
 
 const indexRouter = require("./routes/index"),
+  homeRouter = require("./routes/home"),
   authRouter = require("./routes/auth");
 
 app.use("/", indexRouter);
 app.use("/auth", authRouter);
+app.use("/home", homeRouter);
 
 app.use(function(req, res, next) {
   var err = new Error("Not Found");
