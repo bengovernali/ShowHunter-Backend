@@ -37,12 +37,10 @@ passport.deserializeUser(function(obj, done) {
 });
 
 const indexRouter = require("./routes/index"),
-  authRouter = require("./routes/auth"),
-  usersRouter = require("./routes/users");
+  authRouter = require("./routes/auth");
 
 app.use("/", indexRouter);
 app.use("/auth", authRouter);
-app.use("/users", usersRouter);
 
 app.use(function(req, res, next) {
   var err = new Error("Not Found");
