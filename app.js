@@ -88,17 +88,16 @@ app.get(
   function(req, res) {
     // The request will be redirected to spotify for authentication, so this
     // function will not be called.
-    console.log("attempting to log in");
   }
 );
 
 app.get(
-  "/auth/spotify/callback",
+  "/auth/spotify/callback/",
   passport.authenticate("spotify", { failureRedirect: "/" }),
   function(req, res) {
     // Successful authentication, redirect home.
     console.log("Happy path");
-    res.redirect("/");
+    res.redirect("http://localhost:3001/home");
   }
 );
 
