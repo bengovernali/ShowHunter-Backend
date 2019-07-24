@@ -1,7 +1,7 @@
 const express = require("express"),
   path = require("path"),
   cookieParser = require("cookie-parser"),
-  cors = require("cors"),
+  //cors = require("cors"),
   passport = require("passport"),
   SpotifyStrategy = require("passport-spotify").Strategy,
   session = require("express-session"),
@@ -12,6 +12,7 @@ require("dotenv").config();
 
 const app = express();
 
+/*
 const corsOptions = {
   origin: "*",
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
@@ -21,29 +22,32 @@ const corsOptions = {
   "Access-Control-Allow-Headers":
     "Origin, X-Requested-With, Content-Type, Accept"
 };
+*/
 
 const scope = "user-library-read";
 
 const CLIENT_ID = process.env["CLIENT_ID"];
 const CLIENT_SECRET = process.env["CLIENT_SECRET"];
 
-app.use(passport.initialize());
-app.use(passport.session());
-
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
-
-app.use(cors(corsOptions));
-
 app.use(
   session({
     store: new FileStore(),
-    secret: process.env.SESSION_SECRET
+    secret: process.env["SESSION_SECRET"],
+    resave: false,
+    saveUninitialized: true,
+    is_logged_in: false
   })
 );
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+//app.use(cors(corsOptions));
 
 passport.use(
   new SpotifyStrategy(
@@ -54,13 +58,13 @@ passport.use(
     },
     function(accessToken, refreshToken, expires_in, profile, done) {
       process.nextTick(function() {
-        console.log("Profile: ", profile);
-        const data = [accessToken, profile];
-        // To keep the example simple, the user's spotify profile is returned to
-        // represent the logged-in user. In a typical application, you would want
-        // to associate the spotify account with a user record in your database,
-        // and return that user instead.
-        return done(null, profile, data);
+        //req.session.user = profile.id;
+        //req.session.bearer = accessToken;
+        //req.session.isLoggedIn = true;
+        bearer = accessToken;
+        user = profile.id;
+        console.log(bearer, user);
+        return done(null, bearer, user);
       });
     }
   )
@@ -74,10 +78,12 @@ passport.deserializeUser(function(obj, done) {
   done(null, obj);
 });
 
+/*
 app.all("/*", function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   next();
 });
+*/
 
 app.get(
   "/auth/spotify",
@@ -96,15 +102,17 @@ app.get(
   passport.authenticate("spotify", { failureRedirect: "/" }),
   function(req, res) {
     // Successful authentication, redirect home.
-    console.log("Happy path");
+    console.log("THIS IS THE RES: ", res);
     res.redirect("http://localhost:3001/home");
   }
 );
 
 const indexRouter = require("./routes/index"),
+  authRouter = require("./routes/auth"),
   usersRouter = require("./routes/users");
 
 app.use("/", indexRouter);
+app.use("/auth", authRouter);
 app.use("/users", usersRouter);
 
 app.use(function(req, res, next) {
