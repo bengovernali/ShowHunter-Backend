@@ -4,52 +4,93 @@ const express = require("express"),
 
 const router = express.Router();
 
-function mapArtistIds(data, array) {
-  return data.map(item => array.push(item.track.album.artists[0].id));
+//Function to handle retrieving the spotify id for the artist the user searches for
+async function getArtistId(artist, token) {
+  const response = await fetch(
+    `https://api.spotify.com/v1/search?q=${artist}&type=artist&limit=1`,
+    {
+      method: "get",
+      headers: { Authorization: `Bearer ${token}` }
+    }
+  );
+  const data = await response.json();
+  const artist_id = data.artists.items[0].id;
+  return artist_id;
 }
 
-function getRelatedArtists(id, bearer) {
-  const authOptions2 = {
-    url: `https://api.spotify.com/v1/artists/${id}/related-artists`,
-    headers: { Authorization: `Bearer ${bearer}` },
-    json: true
-  };
+//Function to handle retrieving the related artists
+async function getRelatedArtists(id, token) {
+  const response = await fetch(
+    `https://api.spotify.com/v1/artists/${id}/related-artists`,
+    {
+      method: "get",
+      headers: { Authorization: `Bearer ${token}` }
+    }
+  );
+  const data = await response.json();
+  return data;
+}
 
-  request.get(authOptions2, (error, response, body) => {
-    return body;
+//function to create array of just the related artists' names
+function createRelatedArray(response) {
+  const relatedArray = response.artists;
+  let artistsArray = [];
+  relatedArray.forEach(function(artist) {
+    artistsArray.push(artist.name);
   });
+  return artistsArray;
 }
 
-function mapRelatedArtists(data, array) {
-  return data.map(item => array.push(item.name));
+//function that gets a single artist's events
+//!!!!! currently only handles one event per band, fix this later
+async function getEvents(artist) {
+  const url = `https://app.ticketmaster.com/discovery/v2/events.json?keyword=${artist}&city=atlanta&apikey=3FhkqehgsJxNsLTInDmAyq0Oo7Vzj5j5`;
+  const response = await fetch(url);
+  const data = await response.json();
+  if (!!data._embedded) {
+    const event = data._embedded.events;
+    const name = event[0].name;
+    const venue = event[0]._embedded.venues[0].name;
+    const date = event[0].dates.start.localDate;
+    const time = event[0].dates.start.localTime;
+    const eventData = { name, venue, date, time };
+    return eventData;
+  }
+}
+
+//function that gets triggered at the end of the getAllEvents interval
+function arrayOfEvents(events) {
+  console.log("EVENTS IN CALLBACK ARE", events);
+  return events;
+}
+
+//function to get events from ticketmaster
+function getAllEvents(artists) {
+  let events = [];
+  end = artists.length - 1;
+  count = 0;
+  const intervalObject = setInterval(async () => {
+    if (count == end) {
+      clearInterval(intervalObject);
+      arrayOfEvents(events);
+    }
+    let response = await getEvents(artists[count]);
+    if (response !== undefined) {
+      events.push(response);
+    }
+    count++;
+  }, 1000);
 }
 
 //request data from spotify
-router.get("/scan/:bearer", async function(req, res, next) {
-  let user_artists = [];
-  let filteredIds = [];
-  let related_artists = [];
+router.get("/scan/:token/:artist", async function(req, res, next) {
+  const token = req.params.token;
+  const artist = req.params.artist;
 
-  const bearer = req.params.bearer;
-  const authOptions = {
-    url: `https://api.spotify.com/v1/me/tracks?&limit=50`,
-    headers: { Authorization: `Bearer ${bearer}` },
-    json: true
-  };
-
-  //request top 50 tracks from library
-  await request.get(authOptions, async (error, response, body) => {
-    if (error) throw new Error(error);
-
-    //create an array of artist ids from the first 50 tracks in a users spotify library
-    await mapArtistIds(body.items, user_artists);
-
-    //filter out duplicate artist ids
-    const filteredIds = user_artists.filter((item, index) => {
-      return user_artists.indexOf(item) === index;
-    });
-    console.log(filteredIds);
-  });
+  const artist_id = await getArtistId(artist, token);
+  const related_data = await getRelatedArtists(artist_id, token);
+  const related_artists = await createRelatedArray(related_data);
+  const events = await getAllEvents(related_artists);
 });
 
 module.exports = router;
