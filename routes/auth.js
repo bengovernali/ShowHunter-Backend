@@ -1,5 +1,6 @@
 const express = require("express"),
   request = require("request"),
+  TokenModel = require("../models/token"),
   router = express.Router();
 
 require("dotenv").config();
@@ -9,8 +10,7 @@ const CLIENT_SECRET = process.env["CLIENT_SECRET"];
 
 //handle redirect to spotify login screen
 router.get("/spotify", function(req, res) {
-  const scopes =
-    "user-read-private user-read-birthdate user-read-email playlist-read-private user-library-read user-library-modify user-top-read playlist-read-collaborative playlist-modify-public playlist-modify-private user-follow-read user-follow-modify user-read-playback-state user-read-currently-playing user-modify-playback-state user-read-recently-played";
+  const scopes = "user-read-private user-read-email";
   res.redirect(
     "https://accounts.spotify.com/authorize" +
       "?response_type=code" +
@@ -25,8 +25,6 @@ router.get("/spotify", function(req, res) {
 //upon login submission, request auth token and redirect to fronend with token
 router.get("/spotify/callback", async function(req, res) {
   const code = req.query.code;
-
-  const authString = `${CLIENT_ID} + ":" + ${CLIENT_SECRET}`;
 
   const options = {
     method: "POST",
@@ -44,11 +42,17 @@ router.get("/spotify/callback", async function(req, res) {
     json: true
   };
 
-  await request(options, function(error, response, body) {
+  await request(options, async function(error, response, body) {
     if (error) throw new Error(error);
     const token = body.access_token;
-    //const refresh = body.refresh_token;
-    res.redirect(`http://localhost:3001/?bearer=${token}`);
+
+    await TokenModel.createToken(token);
+
+    const tokenId = await TokenModel.getTokenId(token);
+
+    res.redirect(
+      `http://localhost:3001/?bearer=${token}&tokenId=${tokenId.id}`
+    );
   });
 });
 

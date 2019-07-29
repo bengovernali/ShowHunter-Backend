@@ -1,5 +1,6 @@
 const express = require("express"),
   request = require("request"),
+  EventModel = require("../models/events"),
   fetch = require("node-fetch");
 
 const router = express.Router();
@@ -46,6 +47,7 @@ function createRelatedArray(response) {
 async function getEvents(artist) {
   const url = `https://app.ticketmaster.com/discovery/v2/events.json?keyword=${artist}&city=atlanta&apikey=3FhkqehgsJxNsLTInDmAyq0Oo7Vzj5j5`;
   const response = await fetch(url);
+  console.log(artist);
   const data = await response.json();
   if (!!data._embedded) {
     const event = data._embedded.events;
@@ -59,20 +61,32 @@ async function getEvents(artist) {
 }
 
 //function that gets triggered at the end of the getAllEvents interval
-function arrayOfEvents(events) {
+async function arrayOfEvents(events, tokenId) {
   console.log("EVENTS IN CALLBACK ARE", events);
-  return events;
+  await events.forEach(async event => {
+    await EventModel.createEvent(
+      event.name,
+      event.venue,
+      event.date,
+      event.time,
+      tokenId
+    );
+  });
+  const dbEvents = await EventModel.getEvents(tokenId);
+  console.log("EVENTS FROM DB ARE", dbEvents);
+  return dbEvents;
 }
 
 //function to get events from ticketmaster
-function getAllEvents(artists) {
+function getAllEvents(artists, tokenId) {
   let events = [];
   end = artists.length - 1;
   count = 0;
+
   const intervalObject = setInterval(async () => {
     if (count == end) {
       clearInterval(intervalObject);
-      arrayOfEvents(events);
+      arrayOfEvents(events, tokenId);
     }
     let response = await getEvents(artists[count]);
     if (response !== undefined) {
@@ -80,17 +94,20 @@ function getAllEvents(artists) {
     }
     count++;
   }, 1000);
+  console.log("INTERVAL RESULT: ", intervalObject);
 }
 
 //request data from spotify
-router.get("/scan/:token/:artist", async function(req, res, next) {
+router.get("/scan/:token/:tokenId/:artist", async function(req, res, next) {
   const token = req.params.token;
+  const tokenId = req.params.tokenId;
   const artist = req.params.artist;
 
   const artist_id = await getArtistId(artist, token);
   const related_data = await getRelatedArtists(artist_id, token);
   const related_artists = await createRelatedArray(related_data);
-  const events = await getAllEvents(related_artists);
+
+  await getAllEvents(related_artists, tokenId);
 });
 
 module.exports = router;
