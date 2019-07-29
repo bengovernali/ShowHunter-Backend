@@ -1,9 +1,13 @@
 const express = require("express"),
   request = require("request"),
   EventModel = require("../models/events"),
+  Promise = require("bluebird"),
+  cors = require("cors"),
   fetch = require("node-fetch");
 
 const router = express.Router();
+
+router.use(cors());
 
 //Function to handle retrieving the spotify id for the artist the user searches for
 async function getArtistId(artist, token) {
@@ -49,28 +53,32 @@ async function getEvents(artist) {
   const response = await fetch(url);
   console.log(artist);
   const data = await response.json();
+  let eventData = {};
   if (!!data._embedded) {
     const event = data._embedded.events;
     const name = event[0].name;
     const venue = event[0]._embedded.venues[0].name;
     const date = event[0].dates.start.localDate;
     const time = event[0].dates.start.localTime;
-    const eventData = { name, venue, date, time };
-    return eventData;
+    eventData = { name, venue, date, time };
   }
+  console.log("EVENT DATA: ", eventData);
+  return eventData;
 }
 
 //function that gets triggered at the end of the getAllEvents interval
 async function arrayOfEvents(events, tokenId) {
   console.log("EVENTS IN CALLBACK ARE", events);
   await events.forEach(async event => {
-    await EventModel.createEvent(
+    const eventCreate = await EventModel.createEvent(
       event.name,
       event.venue,
       event.date,
       event.time,
       tokenId
     );
+    console.log(" ");
+    console.log("EVENT CREATE: ", eventCreate);
   });
   const dbEvents = await EventModel.getEvents(tokenId);
   console.log("EVENTS FROM DB ARE", dbEvents);
@@ -78,11 +86,24 @@ async function arrayOfEvents(events, tokenId) {
 }
 
 //function to get events from ticketmaster
-function getAllEvents(artists, tokenId) {
+async function getAllEvents(artists, tokenId, res) {
   let events = [];
-  end = artists.length - 1;
-  count = 0;
 
+  artists.forEach((artist, index) => {
+    setTimeout(async () => {
+      let event = await getEvents(artist);
+      console.log(event);
+      events.push(event);
+      if (index == artists.length - 1) {
+        const filterArray = events.filter(event => event.name);
+        console.log(filterArray);
+        await arrayOfEvents(filterArray, tokenId);
+        res.json({ events: filterArray });
+      }
+    }, index * 1000);
+  });
+
+  /*
   const intervalObject = setInterval(async () => {
     if (count == end) {
       clearInterval(intervalObject);
@@ -94,7 +115,7 @@ function getAllEvents(artists, tokenId) {
     }
     count++;
   }, 1000);
-  console.log("INTERVAL RESULT: ", intervalObject);
+  */
 }
 
 //request data from spotify
@@ -107,7 +128,13 @@ router.get("/scan/:token/:tokenId/:artist", async function(req, res, next) {
   const related_data = await getRelatedArtists(artist_id, token);
   const related_artists = await createRelatedArray(related_data);
 
-  await getAllEvents(related_artists, tokenId);
+  await getAllEvents(related_artists, tokenId, res);
+  //res.redirect(`http://localhost:3000/home/send/?token_id=${tokenId}`);
+});
+
+router.get("/send/:token_id", async function(req, res, next) {
+  const tokenId = req.params.token_id;
+  console.log("MOVING TO THE NEXT PATH: ", tokenId);
 });
 
 module.exports = router;
