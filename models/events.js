@@ -23,7 +23,9 @@ class Events {
 
   static async getEvents(token_id) {
     try {
-      const response = await db.any(
+      console.log("TOKEN ID FROM DB CALL: ", token_id);
+      console.log(typeof token_id);
+      const response = await db.one(
         `Select (name, venue, event_date, event_time) FROM events WHERE token_id = ${token_id}`
       );
       console.log("EVENTs FROM DB CALL: ", response);
