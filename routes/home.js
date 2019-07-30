@@ -67,6 +67,7 @@ async function getEvents(artist) {
 }
 
 //function that gets triggered at the end of the getAllEvents interval
+/*
 async function arrayOfEvents(events, tokenId) {
   console.log("EVENTS IN CALLBACK ARE", events);
   await events.forEach(async event => {
@@ -84,6 +85,7 @@ async function arrayOfEvents(events, tokenId) {
   console.log("EVENTS FROM DB ARE", dbEvents);
   return dbEvents;
 }
+*/
 
 //function to get events from ticketmaster
 async function getAllEvents(artists, tokenId, res) {
@@ -97,7 +99,7 @@ async function getAllEvents(artists, tokenId, res) {
       if (index == artists.length - 1) {
         const filterArray = events.filter(event => event.name);
         console.log(filterArray);
-        await arrayOfEvents(filterArray, tokenId);
+        //await arrayOfEvents(filterArray, tokenId);
         res.json({ events: filterArray });
       }
     }, index * 1000);
@@ -130,11 +132,6 @@ router.get("/scan/:token/:tokenId/:artist", async function(req, res, next) {
 
   await getAllEvents(related_artists, tokenId, res);
   //res.redirect(`http://localhost:3000/home/send/?token_id=${tokenId}`);
-});
-
-router.get("/send/:token_id", async function(req, res, next) {
-  const tokenId = req.params.token_id;
-  console.log("MOVING TO THE NEXT PATH: ", tokenId);
 });
 
 module.exports = router;
