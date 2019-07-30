@@ -1,7 +1,4 @@
 const express = require("express"),
-  request = require("request"),
-  EventModel = require("../models/events"),
-  Promise = require("bluebird"),
   cors = require("cors"),
   fetch = require("node-fetch");
 
@@ -56,13 +53,15 @@ async function getEvents(artist) {
   let eventData = {};
   if (!!data._embedded) {
     const event = data._embedded.events;
+    console.log(event[0]);
     const name = event[0].name;
     const venue = event[0]._embedded.venues[0].name;
     const date = event[0].dates.start.localDate;
     const time = event[0].dates.start.localTime;
-    eventData = { name, venue, date, time };
+    const image = event[0].images[0].url;
+    const url = event[0].outlets[1].url;
+    eventData = { name, venue, date, time, image, url };
   }
-  console.log("EVENT DATA: ", eventData);
   return eventData;
 }
 
