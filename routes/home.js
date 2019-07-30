@@ -48,20 +48,32 @@ function createRelatedArray(response) {
 async function getEvents(artist, zip, radius) {
   const url = `https://app.ticketmaster.com/discovery/v2/events.json?keyword=${artist}&postalcode=${zip}&radius=${radius}&apikey=3FhkqehgsJxNsLTInDmAyq0Oo7Vzj5j5`;
   const response = await fetch(url);
-  console.log(artist);
+  console.log("SEARCHING FOR: ", artist);
   const data = await response.json();
   let eventData = {};
   if (!!data._embedded) {
     const event = data._embedded.events;
-    const name = event[0].name;
-    const venue = event[0]._embedded.venues[0].name;
-    const date = event[0].dates.start.localDate;
-    const time = event[0].dates.start.localTime;
-    const image = event[0].images[0].url;
-    const url = event[0].url;
-    eventData = { name, venue, date, time, image, url };
+    if (!!event[0].dates.start.localTime) {
+      const name = event[0].name;
+      const venue = event[0]._embedded.venues[0].name;
+      const date = event[0].dates.start.localDate;
+      const time = event[0].dates.start.localTime;
+      const image = event[0].images[0].url;
+      const url = event[0].url;
+      eventData = { name, venue, date, time, image, url };
+    }
   }
   return eventData;
+}
+
+//this function filters out duplicate events before sending to the front end
+function uniqueFilter(arr, key) {
+  const unique = arr
+    .map(e => e[key])
+    .map((e, i, final) => final.indexOf(e) === i && i)
+    .filter(e => arr[e])
+    .map(e => arr[e]);
+  return unique;
 }
 
 //function to get events from ticketmaster
@@ -71,13 +83,12 @@ async function getAllEvents(artists, res, zip, radius) {
   artists.forEach((artist, index) => {
     setTimeout(async () => {
       let event = await getEvents(artist, zip, radius);
-      console.log(event);
       events.push(event);
       if (index == artists.length - 1) {
         const filterArray = events.filter(event => event.name);
-        console.log(filterArray);
-        //await arrayOfEvents(filterArray, tokenId);
-        res.json({ events: filterArray });
+        newArray = uniqueFilter(filterArray, "name");
+        console.log(newArray);
+        res.json({ events: newArray });
       }
     }, index * 1000);
   });
