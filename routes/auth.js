@@ -25,6 +25,7 @@ router.get("/spotify", function(req, res) {
 //upon login submission, request auth token and redirect to fronend with token
 router.get("/spotify/callback", async function(req, res) {
   const code = req.query.code;
+  console.log("BEARER CODE IS: ", code);
 
   const options = {
     method: "POST",
@@ -45,14 +46,13 @@ router.get("/spotify/callback", async function(req, res) {
   await request(options, async function(error, response, body) {
     if (error) throw new Error(error);
     const token = body.access_token;
+    console.log("TOKEN IS: ", token);
 
     await TokenModel.createToken(token);
 
     const tokenId = await TokenModel.getTokenId(token);
 
-    res.redirect(
-      `http://localhost:3001/?bearer=${token}&tokenId=${tokenId.id}`
-    );
+    res.redirect(`http://localhost:3001/?tokenId=${tokenId.id}`);
   });
 });
 

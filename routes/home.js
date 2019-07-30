@@ -1,5 +1,6 @@
 const express = require("express"),
   cors = require("cors"),
+  TokenModel = require("../models/token"),
   fetch = require("node-fetch");
 
 const router = express.Router();
@@ -16,6 +17,7 @@ async function getArtistId(artist, token) {
     }
   );
   const data = await response.json();
+  console.log(data);
   const artist_id = data.artists.items[0].id;
   return artist_id;
 }
@@ -95,23 +97,25 @@ async function getAllEvents(artists, res, zip, radius) {
 }
 
 //request data from spotify
-router.get("/scan/:token/:tokenId/:artist/:zip/:radius", async function(
+router.get("/scan/:tokenId/:artist/:zip/:radius", async function(
   req,
   res,
   next
 ) {
-  const token = req.params.token;
   const tokenId = req.params.tokenId;
+  console.log("TOKEN ID IS: ", tokenId);
   const artist = req.params.artist;
   const zip = req.params.zip;
   const radius = req.params.radius;
 
+  const tokenObject = await TokenModel.getTokenById(tokenId);
+  const token = tokenObject.token;
+  console.log("TOKEN IS ", token);
   const artist_id = await getArtistId(artist, token);
   const related_data = await getRelatedArtists(artist_id, token);
   const related_artists = await createRelatedArray(related_data);
 
   await getAllEvents(related_artists, res, zip, radius);
-  //res.redirect(`http://localhost:3000/home/send/?token_id=${tokenId}`);
 });
 
 module.exports = router;

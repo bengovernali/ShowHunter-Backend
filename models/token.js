@@ -28,6 +28,18 @@ class Token {
       return err.message;
     }
   }
+
+  static async getTokenById(token_id) {
+    try {
+      const response = await db.one(
+        `SELECT token FROM tokens WHERE id = '${token_id}';`
+      );
+      console.log(response);
+      return response;
+    } catch (err) {
+      return err.message;
+    }
+  }
 }
 
 module.exports = Token;
