@@ -45,54 +45,32 @@ function createRelatedArray(response) {
 
 //function that gets a single artist's events
 //!!!!! currently only handles one event per band, fix this later
-async function getEvents(artist) {
-  const url = `https://app.ticketmaster.com/discovery/v2/events.json?keyword=${artist}&city=atlanta&apikey=3FhkqehgsJxNsLTInDmAyq0Oo7Vzj5j5`;
+async function getEvents(artist, zip, radius) {
+  const url = `https://app.ticketmaster.com/discovery/v2/events.json?keyword=${artist}&postalcode=${zip}&radius=${radius}&apikey=3FhkqehgsJxNsLTInDmAyq0Oo7Vzj5j5`;
   const response = await fetch(url);
   console.log(artist);
   const data = await response.json();
   let eventData = {};
   if (!!data._embedded) {
     const event = data._embedded.events;
-    console.log(event[0]);
     const name = event[0].name;
     const venue = event[0]._embedded.venues[0].name;
     const date = event[0].dates.start.localDate;
     const time = event[0].dates.start.localTime;
     const image = event[0].images[0].url;
-    const url = event[0].outlets[1].url;
+    const url = event[0].url;
     eventData = { name, venue, date, time, image, url };
   }
   return eventData;
 }
 
-//function that gets triggered at the end of the getAllEvents interval
-/*
-async function arrayOfEvents(events, tokenId) {
-  console.log("EVENTS IN CALLBACK ARE", events);
-  await events.forEach(async event => {
-    const eventCreate = await EventModel.createEvent(
-      event.name,
-      event.venue,
-      event.date,
-      event.time,
-      tokenId
-    );
-    console.log(" ");
-    console.log("EVENT CREATE: ", eventCreate);
-  });
-  const dbEvents = await EventModel.getEvents(tokenId);
-  console.log("EVENTS FROM DB ARE", dbEvents);
-  return dbEvents;
-}
-*/
-
 //function to get events from ticketmaster
-async function getAllEvents(artists, tokenId, res) {
+async function getAllEvents(artists, res, zip, radius) {
   let events = [];
 
   artists.forEach((artist, index) => {
     setTimeout(async () => {
-      let event = await getEvents(artist);
+      let event = await getEvents(artist, zip, radius);
       console.log(event);
       events.push(event);
       if (index == artists.length - 1) {
@@ -103,33 +81,25 @@ async function getAllEvents(artists, tokenId, res) {
       }
     }, index * 1000);
   });
-
-  /*
-  const intervalObject = setInterval(async () => {
-    if (count == end) {
-      clearInterval(intervalObject);
-      arrayOfEvents(events, tokenId);
-    }
-    let response = await getEvents(artists[count]);
-    if (response !== undefined) {
-      events.push(response);
-    }
-    count++;
-  }, 1000);
-  */
 }
 
 //request data from spotify
-router.get("/scan/:token/:tokenId/:artist", async function(req, res, next) {
+router.get("/scan/:token/:tokenId/:artist/:zip/:radius", async function(
+  req,
+  res,
+  next
+) {
   const token = req.params.token;
   const tokenId = req.params.tokenId;
   const artist = req.params.artist;
+  const zip = req.params.zip;
+  const radius = req.params.radius;
 
   const artist_id = await getArtistId(artist, token);
   const related_data = await getRelatedArtists(artist_id, token);
   const related_artists = await createRelatedArray(related_data);
 
-  await getAllEvents(related_artists, tokenId, res);
+  await getAllEvents(related_artists, res, zip, radius);
   //res.redirect(`http://localhost:3000/home/send/?token_id=${tokenId}`);
 });
 
