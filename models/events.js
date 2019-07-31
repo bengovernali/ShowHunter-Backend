@@ -14,7 +14,6 @@ class Events {
 
     try {
       let response = await db.result(query);
-      console.log("model", response);
       return response;
     } catch (err) {
       return err.message;
@@ -23,12 +22,9 @@ class Events {
 
   static async getEvents(token_id) {
     try {
-      console.log("TOKEN ID FROM DB CALL: ", token_id);
-      console.log(typeof token_id);
       const response = await db.one(
         `Select (name, venue, event_date, event_time) FROM events WHERE token_id = ${token_id}`
       );
-      console.log("EVENTs FROM DB CALL: ", response);
       return response;
     } catch (err) {
       return err.message;

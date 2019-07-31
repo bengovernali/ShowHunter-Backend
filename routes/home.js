@@ -47,11 +47,13 @@ function createRelatedArray(response) {
 
 //function that gets a single artist's events
 //!!!!! currently only handles one event per band, fix this later
-async function getEvents(artist, zip, radius) {
-  const url = `https://app.ticketmaster.com/discovery/v2/events.json?keyword=${artist}&postalcode=${zip}&radius=${radius}&apikey=3FhkqehgsJxNsLTInDmAyq0Oo7Vzj5j5`;
+async function getEvents(artist, zip) {
+  const url = `https://app.ticketmaster.com/discovery/v2/events.json?keyword=${artist}&city=${zip}&apikey=3FhkqehgsJxNsLTInDmAyq0Oo7Vzj5j5`;
+  console.log(url);
   const response = await fetch(url);
   console.log("SEARCHING FOR: ", artist);
   const data = await response.json();
+  console.log(data);
   let eventData = {};
   if (!!data._embedded) {
     const event = data._embedded.events;
@@ -79,17 +81,16 @@ function uniqueFilter(arr, key) {
 }
 
 //function to get events from ticketmaster
-async function getAllEvents(artists, res, zip, radius) {
+async function getAllEvents(artists, res, zip) {
   let events = [];
 
   artists.forEach((artist, index) => {
     setTimeout(async () => {
-      let event = await getEvents(artist, zip, radius);
+      let event = await getEvents(artist, zip);
       events.push(event);
       if (index == artists.length - 1) {
         const filterArray = events.filter(event => event.name);
         newArray = uniqueFilter(filterArray, "name");
-        console.log(newArray);
         res.json({ events: newArray });
       }
     }, index * 1000);
@@ -97,25 +98,18 @@ async function getAllEvents(artists, res, zip, radius) {
 }
 
 //request data from spotify
-router.get("/scan/:tokenId/:artist/:zip/:radius", async function(
-  req,
-  res,
-  next
-) {
+router.get("/scan/:tokenId/:artist/:zip/", async function(req, res, next) {
   const tokenId = req.params.tokenId;
-  console.log("TOKEN ID IS: ", tokenId);
   const artist = req.params.artist;
   const zip = req.params.zip;
-  const radius = req.params.radius;
 
   const tokenObject = await TokenModel.getTokenById(tokenId);
   const token = tokenObject.token;
-  console.log("TOKEN IS ", token);
   const artist_id = await getArtistId(artist, token);
   const related_data = await getRelatedArtists(artist_id, token);
   const related_artists = await createRelatedArray(related_data);
 
-  await getAllEvents(related_artists, res, zip, radius);
+  await getAllEvents(related_artists, res, zip);
 });
 
 module.exports = router;
