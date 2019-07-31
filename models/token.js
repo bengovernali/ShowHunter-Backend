@@ -11,7 +11,6 @@ class Token {
 
     try {
       let response = await db.result(query);
-      console.log("TOKEN INSERTED", response);
       return response;
     } catch (err) {
       return err.message;
@@ -34,7 +33,17 @@ class Token {
       const response = await db.one(
         `SELECT token FROM tokens WHERE id = '${token_id}';`
       );
-      console.log(response);
+      return response;
+    } catch (err) {
+      return err.message;
+    }
+  }
+
+  static async deleteToken(tokenId) {
+    try {
+      const response = await db.result(
+        `DELETE FROM tokens WHERE id = '${tokenId}';`
+      );
       return response;
     } catch (err) {
       return err.message;
