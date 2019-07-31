@@ -29,11 +29,13 @@ app.use(
 
 const indexRouter = require("./routes/index"),
   homeRouter = require("./routes/home"),
+  logoutRouter = require("./routes/logout"),
   authRouter = require("./routes/auth");
 
 app.use("/", indexRouter);
 app.use("/auth", authRouter);
 app.use("/home", homeRouter);
+app.use("/logout", logoutRouter);
 
 app.use(function(req, res, next) {
   var err = new Error("Not Found");
