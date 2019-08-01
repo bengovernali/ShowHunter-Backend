@@ -48,8 +48,8 @@ function createRelatedArray(response) {
 //!!!!! currently only handles one event per band, fix this later
 async function getEvents(artist, zip) {
   const url = `https://app.ticketmaster.com/discovery/v2/events.json?keyword=${artist}&city=${zip}&apikey=3FhkqehgsJxNsLTInDmAyq0Oo7Vzj5j5`;
-  const response = await fetch(url);
   const encode = encodeURI(url);
+  const response = await fetch(encode);
   const data = await response.json();
   let eventData = {};
   if (!!data._embedded) {
