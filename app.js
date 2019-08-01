@@ -2,7 +2,6 @@ const express = require("express"),
   path = require("path"),
   cookieParser = require("cookie-parser"),
   session = require("express-session"),
-  FileStore = require("session-file-store")(session),
   logger = require("morgan");
 
 require("dotenv").config();
@@ -16,7 +15,6 @@ app.use(cookieParser(process.env["SESSION_SECRET"]));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(
   session({
-    store: new FileStore(),
     secret: process.env["SESSION_SECRET"],
     resave: true,
     saveUninitialized: true,

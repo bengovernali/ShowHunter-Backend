@@ -10,7 +10,6 @@ const CLIENT_SECRET = process.env["CLIENT_SECRET"];
 
 //handle redirect to spotify login screen
 router.get("/spotify", function(req, res) {
-  console.log(req);
   const scopes = "user-read-private user-read-email";
   res.redirect(
     "https://accounts.spotify.com/authorize" +

@@ -17,7 +17,6 @@ async function getArtistId(artist, token) {
     }
   );
   const data = await response.json();
-  console.log(data);
   const artist_id = data.artists.items[0].id;
   return artist_id;
 }
@@ -49,11 +48,8 @@ function createRelatedArray(response) {
 //!!!!! currently only handles one event per band, fix this later
 async function getEvents(artist, zip) {
   const url = `https://app.ticketmaster.com/discovery/v2/events.json?keyword=${artist}&city=${zip}&apikey=3FhkqehgsJxNsLTInDmAyq0Oo7Vzj5j5`;
-  console.log(url);
   const response = await fetch(url);
-  console.log("SEARCHING FOR: ", artist);
   const data = await response.json();
-  console.log(data);
   let eventData = {};
   if (!!data._embedded) {
     const event = data._embedded.events;
