@@ -35,9 +35,9 @@ async function getRelatedArtists(id, token) {
 }
 
 //function to create array of just the related artists' names
-function createRelatedArray(response) {
+function createRelatedArray(response, original) {
   const relatedArray = response.artists;
-  let artistsArray = [];
+  let artistsArray = [original];
   relatedArray.forEach(function(artist) {
     artistsArray.push(artist.name);
   });
@@ -104,7 +104,7 @@ router.get("/scan/:tokenId/:artist/:zip/", async function(req, res, next) {
   const token = tokenObject.token;
   const artist_id = await getArtistId(artist, token);
   const related_data = await getRelatedArtists(artist_id, token);
-  const related_artists = await createRelatedArray(related_data);
+  const related_artists = await createRelatedArray(related_data, artist);
 
   await getAllEvents(related_artists, res, zip);
 });
