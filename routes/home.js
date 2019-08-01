@@ -50,14 +50,11 @@ async function getEvents(artist, zip) {
   const url = `https://app.ticketmaster.com/discovery/v2/events.json?keyword=${artist}&city=${zip}&apikey=3FhkqehgsJxNsLTInDmAyq0Oo7Vzj5j5`;
   const response = await fetch(url);
   const encode = encodeURI(url);
-  console.log("URL ", encode);
   const data = await response.json();
-  console.log("ARTIST: ", artist);
   let eventData = {};
   if (!!data._embedded) {
     const event = data._embedded.events;
     if (!!event[0].dates.start.localTime) {
-      console.log(event[0]);
       const name = event[0].name;
       const venue = event[0]._embedded.venues[0].name;
       const date = event[0].dates.start.localDate;
