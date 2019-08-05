@@ -1,39 +1,16 @@
-CREATE TABLE users
+CREATE TABLE tokens
 (
     id serial primary key,
-    username varchar(100)
-);
-
-CREATE TABLE artists
-(
-    id serial primary key,
-    name varchar(100)
-);
-
-CREATE TABLE artistusers
-(
-    id serial primary key,
-    user_id INT,
-    artist_id INT,
-    foreign key(user_id) references users(id),
-    foreign key(artist_id) references artists(id)
+    token varchar(300)
 );
 
 CREATE TABLE events
 (
     id serial primary key,
-    eventname varchar(100),
+    name varchar(200),
     venue varchar(100),
-    day DATE,
-    hour TIME,
-    zip INT
-);
-
-CREATE TABLE userevents
-(
-    id serial primary key,
-    user_id INT,
-    event_id INT,
-    foreign key(user_id) references users(id),
-    foreign key(event_id) references events(id)
+    event_date varchar(20),
+    event_time varchar(20),
+    token_id INT,
+    foreign key(token_id) references tokens(id)
 );
