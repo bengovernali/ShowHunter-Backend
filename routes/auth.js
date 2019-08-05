@@ -18,9 +18,7 @@ router.get("/spotify", function(req, res) {
       CLIENT_ID +
       (scopes ? "&scope=" + encodeURIComponent(scopes) : "") +
       "&redirect_uri=" +
-      encodeURIComponent(
-        "https://backend.showhunter.live/auth/spotify/callback/"
-      )
+      encodeURIComponent("http://localhost:3000/auth/spotify/callback/")
   );
 });
 
@@ -39,7 +37,7 @@ router.get("/spotify/callback", async function(req, res) {
     form: {
       grant_type: "authorization_code",
       code: code,
-      redirect_uri: "https://backend.showhunter.live/auth/spotify/callback/"
+      redirect_uri: "http://localhost:3000/auth/spotify/callback/"
     },
     json: true
   };
