@@ -18,7 +18,9 @@ router.get("/spotify", function(req, res) {
       CLIENT_ID +
       (scopes ? "&scope=" + encodeURIComponent(scopes) : "") +
       "&redirect_uri=" +
-      encodeURIComponent("http://localhost:3000/auth/spotify/callback/")
+      encodeURIComponent(
+        "http://http://ec2-3-19-71-90.us-east-2.compute.amazonaws.com/:3000/auth/spotify/callback/"
+      )
   );
 });
 
@@ -37,7 +39,8 @@ router.get("/spotify/callback", async function(req, res) {
     form: {
       grant_type: "authorization_code",
       code: code,
-      redirect_uri: "http://localhost:3000/auth/spotify/callback/"
+      redirect_uri:
+        "http://http://ec2-3-19-71-90.us-east-2.compute.amazonaws.com/:3000/auth/spotify/callback/"
     },
     json: true
   };
@@ -50,7 +53,7 @@ router.get("/spotify/callback", async function(req, res) {
 
     const tokenId = await TokenModel.getTokenId(token);
 
-    res.redirect(`http://localhost:3001/?tokenId=${tokenId.id}`);
+    res.redirect(`http://showhunter.live/?tokenId=${tokenId.id}`);
   });
 });
 
