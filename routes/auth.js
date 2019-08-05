@@ -19,7 +19,7 @@ router.get("/spotify", function(req, res) {
       (scopes ? "&scope=" + encodeURIComponent(scopes) : "") +
       "&redirect_uri=" +
       encodeURIComponent(
-        "https://ec2-3-19-71-90.us-east-2.compute.amazonaws.com/auth/spotify/callback/"
+        "http://ec2-3-19-71-90.us-east-2.compute.amazonaws.com/auth/spotify/callback/"
       )
   );
 });
@@ -40,7 +40,7 @@ router.get("/spotify/callback", async function(req, res) {
       grant_type: "authorization_code",
       code: code,
       redirect_uri:
-        "https://ec2-3-19-71-90.us-east-2.compute.amazonaws.com/auth/spotify/callback/"
+        "http://ec2-3-19-71-90.us-east-2.compute.amazonaws.com/auth/spotify/callback/"
     },
     json: true
   };
