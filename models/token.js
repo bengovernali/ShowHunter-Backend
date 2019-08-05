@@ -9,6 +9,8 @@ class Token {
   static async createToken(token) {
     const query = `INSERT INTO tokens (token) VALUES ('${token}');`;
 
+    console.log("CREATING TOKEN ", token);
+
     try {
       let response = await db.result(query);
       return response;
@@ -22,6 +24,7 @@ class Token {
       const response = await db.one(
         `SELECT id FROM tokens WHERE token = '${token}';`
       );
+      console.log("GET TOKEN ID RESPONSE IS: ", response);
       return response;
     } catch (err) {
       return err.message;
@@ -33,6 +36,7 @@ class Token {
       const response = await db.one(
         `SELECT token FROM tokens WHERE id = '${token_id}';`
       );
+      console.log("TOKEN ID IS: ", response);
       return response;
     } catch (err) {
       return err.message;
