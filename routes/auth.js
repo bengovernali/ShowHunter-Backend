@@ -19,7 +19,7 @@ router.get("/spotify", function(req, res) {
       (scopes ? "&scope=" + encodeURIComponent(scopes) : "") +
       "&redirect_uri=" +
       encodeURIComponent(
-        "http://ec2-3-19-71-90.us-east-2.compute.amazonaws.com/auth/spotify/callback/"
+        "https://ec2-3-19-71-90.us-east-2.compute.amazonaws.com/auth/spotify/callback/"
       )
   );
 });
@@ -40,7 +40,7 @@ router.get("/spotify/callback", async function(req, res) {
       grant_type: "authorization_code",
       code: code,
       redirect_uri:
-        "http://ec2-3-19-71-90.us-east-2.compute.amazonaws.com/auth/spotify/callback/"
+        "https://ec2-3-19-71-90.us-east-2.compute.amazonaws.com/auth/spotify/callback/"
     },
     json: true
   };
@@ -52,8 +52,9 @@ router.get("/spotify/callback", async function(req, res) {
     await TokenModel.createToken(token);
 
     const tokenId = await TokenModel.getTokenId(token);
+    console.log(tokenId);
 
-    res.redirect(`http://showhunter.live/?tokenId=${tokenId.id}`);
+    res.redirect(`https://showhunter.live/?tokenId=${tokenId.id}`);
   });
 });
 
