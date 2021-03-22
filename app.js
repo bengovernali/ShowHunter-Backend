@@ -1,7 +1,6 @@
 const express = require("express"),
   path = require("path"),
   cookieParser = require("cookie-parser"),
-  session = require("express-session"),
   logger = require("morgan");
 
 require("dotenv").config();
@@ -13,17 +12,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser(process.env["SESSION_SECRET"]));
 app.use(express.static(path.join(__dirname, "public")));
-app.use(
-  session({
-    secret: process.env["SESSION_SECRET"],
-    resave: true,
-    saveUninitialized: true,
-    is_logged_in: false,
-    cookie: {
-      secure: false
-    }
-  })
-);
 
 const indexRouter = require("./routes/index"),
   homeRouter = require("./routes/home"),

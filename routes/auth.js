@@ -19,7 +19,7 @@ router.get("/spotify", function(req, res) {
       (scopes ? "&scope=" + encodeURIComponent(scopes) : "") +
       "&redirect_uri=" +
       encodeURIComponent(
-        "https://backend.showhunter.live/auth/spotify/callback/"
+        "http://localhost:3000/auth/spotify/callback/"
       )
   );
 });
@@ -27,7 +27,6 @@ router.get("/spotify", function(req, res) {
 //upon login submission, request auth token and redirect to fronend with token
 router.get("/spotify/callback", async function(req, res) {
   const code = req.query.code;
-
   const options = {
     method: "POST",
     url: "https://accounts.spotify.com/api/token",
@@ -39,7 +38,7 @@ router.get("/spotify/callback", async function(req, res) {
     form: {
       grant_type: "authorization_code",
       code: code,
-      redirect_uri: "https://backend.showhunter.live/auth/spotify/callback/"
+      redirect_uri: "http://localhost:3000/auth/spotify/callback/"
     },
     json: true
   };
@@ -48,12 +47,11 @@ router.get("/spotify/callback", async function(req, res) {
     if (error) throw new Error(error);
     const token = body.access_token;
 
-    await TokenModel.createToken(token);
+    //await TokenModel.createToken(token);
 
-    const tokenId = await TokenModel.getTokenId(token);
-    console.log(tokenId);
+    //const tokenId = await TokenModel.getTokenId(token);
 
-    res.redirect(`https://showhunter.live/?tokenId=${tokenId.id}`);
+    res.redirect(`http://localhost:3001/?ath=${token}`);
   });
 });
 
