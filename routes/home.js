@@ -9,6 +9,7 @@ router.use(cors());
 
 //Function to handle retrieving the spotify id for the artist the user searches for
 async function getArtistId(artist, token) {
+  console.log(artist, token)
   const response = await fetch(
     `https://api.spotify.com/v1/search?q=${artist}&type=artist&limit=1`,
     {
@@ -17,6 +18,7 @@ async function getArtistId(artist, token) {
     }
   );
   const data = await response.json();
+  console.log(data.artists.items[0])
   const artist_id = data.artists.items[0].id;
   return artist_id;
 }
@@ -96,12 +98,9 @@ async function getAllEvents(artists, res, zip) {
 
 //request data from spotify
 router.get("/scan/:tokenId/:artist/:zip/", async function(req, res, next) {
-  const tokenId = req.params.tokenId;
+  const token = req.params.tokenId;
   const artist = req.params.artist;
   const zip = req.params.zip;
-
-  const tokenObject = await TokenModel.getTokenById(tokenId);
-  const token = tokenObject.token;
   const artist_id = await getArtistId(artist, token);
   const related_data = await getRelatedArtists(artist_id, token);
   const related_artists = await createRelatedArray(related_data, artist);

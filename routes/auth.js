@@ -1,6 +1,5 @@
 const express = require("express"),
   request = require("request"),
-  TokenModel = require("../models/token"),
   router = express.Router();
 
 require("dotenv").config();
@@ -46,11 +45,6 @@ router.get("/spotify/callback", async function(req, res) {
   await request(options, async function(error, response, body) {
     if (error) throw new Error(error);
     const token = body.access_token;
-
-    //await TokenModel.createToken(token);
-
-    //const tokenId = await TokenModel.getTokenId(token);
-
     res.redirect(`http://localhost:3001/?ath=${token}`);
   });
 });
