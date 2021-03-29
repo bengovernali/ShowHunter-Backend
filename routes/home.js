@@ -1,6 +1,5 @@
 const express = require("express"),
   cors = require("cors"),
-  TokenModel = require("../models/token"),
   fetch = require("node-fetch");
 
 const router = express.Router();
@@ -9,7 +8,6 @@ router.use(cors());
 
 //Function to handle retrieving the spotify id for the artist the user searches for
 async function getArtistId(artist, token) {
-  console.log(artist, token)
   const response = await fetch(
     `https://api.spotify.com/v1/search?q=${artist}&type=artist&limit=1`,
     {
@@ -18,7 +16,6 @@ async function getArtistId(artist, token) {
     }
   );
   const data = await response.json();
-  console.log(data.artists.items[0])
   const artist_id = data.artists.items[0].id;
   return artist_id;
 }
