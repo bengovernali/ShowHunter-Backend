@@ -18,7 +18,7 @@ router.get("/spotify", function(req, res) {
       (scopes ? "&scope=" + encodeURIComponent(scopes) : "") +
       "&redirect_uri=" +
       encodeURIComponent(
-        "http://localhost:3000/auth/spotify/callback/"
+        "https://git.heroku.com/showhunter.git/auth/spotify/callback/"
       )
   );
 });
@@ -37,7 +37,7 @@ router.get("/spotify/callback", async function(req, res) {
     form: {
       grant_type: "authorization_code",
       code: code,
-      redirect_uri: "http://localhost:3000/auth/spotify/callback/"
+      redirect_uri: "https://git.heroku.com/showhunter.git/auth/spotify/callback/"
     },
     json: true
   };
@@ -45,7 +45,7 @@ router.get("/spotify/callback", async function(req, res) {
   await request(options, async function(error, response, body) {
     if (error) throw new Error(error);
     const token = body.access_token;
-    res.redirect(`http://localhost:3001/?ath=${token}`);
+    res.redirect(`https://showhunter.live/?ath=${token}`);
   });
 });
 
