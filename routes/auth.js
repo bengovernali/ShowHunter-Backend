@@ -18,7 +18,7 @@ router.get("/spotify", function(req, res) {
       (scopes ? "&scope=" + encodeURIComponent(scopes) : "") +
       "&redirect_uri=" +
       encodeURIComponent(
-        "https://git.heroku.com/showhunter.git/auth/spotify/callback/"
+        "https://showhunter.herokuapp.com/auth/spotify/callback/"
       )
   );
 });
@@ -37,7 +37,7 @@ router.get("/spotify/callback", async function(req, res) {
     form: {
       grant_type: "authorization_code",
       code: code,
-      redirect_uri: "https://git.heroku.com/showhunter.git/auth/spotify/callback/"
+      redirect_uri: "https://showhunter.herokuapp.com/auth/spotify/callback/"
     },
     json: true
   };
