@@ -16,8 +16,57 @@ async function getArtistId(artist, token) {
     }
   );
   const data = await response.json();
-  const artist_id = data.artists.items[0].id;
-  return artist_id;
+  if (data.error.status === 401) {
+    return "refresh"
+  } else {
+    const artist_id = data.artists.items[0].id;
+    return artist_id;
+  }
+}
+
+async function getUserTopArtists(token) {
+  //get top 50 artists from spotify
+  const response = await fetch(
+    `https://api.spotify.com/v1/me/top/artists?limit=50`,
+    {
+      method: "get",
+      headers: { Authorization: `Bearer ${token}` }
+    }
+  );
+
+  const data = await response.json();
+  //console.log(data)
+  
+  //store top 50 artists in artistNames array
+  let artistNames = data.items.map((artist) => {
+    return artist.name
+  })
+
+  //create array of top 50 artist ids
+  const artistIds = await data.items.map((artist) => {
+    return artist.id
+  })
+
+  const relatedArtists = await createRelatedArtistsArray(artistIds, token)
+
+  console.log(relatedArtists)
+  
+  /*
+  if (data.error.status === 401) {
+    return "refresh"
+  } else {
+    return data;
+  }
+  */
+ return data
+}
+
+async function createRelatedArtistsArray(ids, token) {
+  const relatedArtists = await ids.map((id) => {
+      return getRelatedArtists(id, token)
+  })
+  console.log(relatedArtists)
+  return relatedArtists
 }
 
 //Function to handle retrieving the related artists
@@ -30,7 +79,11 @@ async function getRelatedArtists(id, token) {
     }
   );
   const data = await response.json();
-  return data;
+  const artistNames = data.artists.map((artist) => {
+    return artist.name
+  })
+  console.log(artistNames)
+  return artistNames;
 }
 
 //function to create array of just the related artists' names
@@ -99,10 +152,21 @@ router.get("/scan/:tokenId/:artist/:zip/", async function(req, res, next) {
   const artist = req.params.artist;
   const zip = req.params.zip;
   const artist_id = await getArtistId(artist, token);
-  const related_data = await getRelatedArtists(artist_id, token);
-  const related_artists = await createRelatedArray(related_data, artist);
-
-  await getAllEvents(related_artists, res, zip);
+  console.log(artist_id)
+  if (artist_id === "refresh") {
+    res.json({ token: "expired" })
+  } else {
+    const related_data = await getRelatedArtists(artist_id, token);
+    const related_artists = await createRelatedArray(related_data, artist);
+    await getAllEvents(related_artists, res, zip);
+  }
 });
+
+router.get("/scan/getArtists/:token/", async function(req, res, next) {
+  const token = req.params.token;
+  const artists = await getUserTopArtists(token)
+  //console.log(artists)
+  res.send(artists)
+})
 
 module.exports = router;
