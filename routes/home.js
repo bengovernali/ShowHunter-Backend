@@ -35,41 +35,31 @@ async function getUserTopArtists(token) {
   );
 
   const data = await response.json();
-  //console.log(data)
-  
-  //store top 50 artists in artistNames array
-  let artistNames = data.items.map((artist) => {
-    return artist.name
-  })
+  return data.items
+}
 
-  //create array of top 50 artist ids
-  const artistIds = await data.items.map((artist) => {
+//Used to store the names of the top artists in an array
+function storeTopArtistNames(artists) {
+    const artistNames = artists.map((artist) => {
+      return artist.name
+    })
+    return artistNames
+}
+
+//used to create an array of only the ids for the user's top 50 artists
+function getTopIds(artists) {
+  const artistIds = artists.map((artist) => {
     return artist.id
   })
-
-  const relatedArtists = await createRelatedArtistsArray(artistIds, token)
-
-  console.log(relatedArtists)
-  
-  /*
-  if (data.error.status === 401) {
-    return "refresh"
-  } else {
-    return data;
-  }
-  */
- return data
+  return artistIds
 }
 
-async function createRelatedArtistsArray(ids, token) {
-  const relatedArtists = await ids.map((id) => {
-      return getRelatedArtists(id, token)
-  })
-  console.log(relatedArtists)
-  return relatedArtists
+//calls getRelatedArtists on each id in the list of top artists. waits until all promises have been completed
+async function getAllRelatedArtists(artistIds, token) {
+  return Promise.all(artistIds.map(id => getRelatedArtists(id, token)))
 }
 
-//Function to handle retrieving the related artists
+//Function to handle retrieving the related artists for a single artist
 async function getRelatedArtists(id, token) {
   const response = await fetch(
     `https://api.spotify.com/v1/artists/${id}/related-artists`,
@@ -82,8 +72,18 @@ async function getRelatedArtists(id, token) {
   const artistNames = data.artists.map((artist) => {
     return artist.name
   })
-  console.log(artistNames)
   return artistNames;
+}
+
+
+//flattens the relatedArtists array
+function flattenArtists(artists) {
+  return artists.flat()
+}
+
+//filters duplicates out of artists array
+function filterArtists(artists) {
+  return Array.from(new Set(artists))
 }
 
 //function to create array of just the related artists' names
@@ -164,9 +164,24 @@ router.get("/scan/:tokenId/:artist/:zip/", async function(req, res, next) {
 
 router.get("/scan/getArtists/:token/", async function(req, res, next) {
   const token = req.params.token;
-  const artists = await getUserTopArtists(token)
-  //console.log(artists)
-  res.send(artists)
+  
+  const topArtists = await getUserTopArtists(token)
+  
+  let artistNames = storeTopArtistNames(topArtists)
+
+  const artistIds = getTopIds(topArtists)
+
+  const relatedArtists = await getAllRelatedArtists(artistIds, token)
+
+  const flatRelatedArtists = flattenArtists(relatedArtists)
+
+  const allArtists = artistNames.concat(flatRelatedArtists)
+
+  const filteredArtists = filterArtists(allArtists)
+
+  console.log(filteredArtists)
+
+  res.send(filteredArtists)
 })
 
 module.exports = router;
